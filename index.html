@@ -292,6 +292,46 @@
   footer{margin-top:100px;border-top:1px solid rgba(255,255,255,.08);padding:46px 0 62px;color:var(--ink3);font-size:21px;line-height:1.8;text-align:center;position:relative;z-index:1}
   footer .logo-s{width:44px;height:44px;margin-bottom:16px}
 
+  /* ============ 打印 / PDF ============ */
+  @media print{
+    /* 保留深色底与彩色玻璃，否则导出成白底黑字丢失全部设计 */
+    *{-webkit-print-color-adjust:exact !important;print-color-adjust:exact !important;
+      animation:none !important;transition:none !important}
+    @page{size:A4;margin:12mm 10mm}
+    html,body{background:#0b0f1c !important}
+    /* 滚动淡入元素在打印时不会触发观察器，必须强制显形 */
+    .reveal{opacity:1 !important;transform:none !important}
+    /* 折叠的难题答案必须全部展开 */
+    .acc-body{max-height:none !important;overflow:visible !important}
+    .acc-arrow{display:none}
+    /* 屏幕专用的浮层与装饰 */
+    nav,#progress,.orb,#bgfx,.sweep::after,.glare{display:none !important}
+    .g{backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+      background:rgba(22,32,58,.92) !important;box-shadow:none !important}
+    /* 单栏铺排，避免窄栏挤字 */
+    .building-wrap,.fin-wrap,.grid2,.grid3,.hero-grid{grid-template-columns:1fr !important}
+    .grid3>*:last-child:nth-child(3){grid-column:auto !important}
+    #coreBox{display:none}
+    .building{max-width:620px}
+    /* 分页控制：卡片与条目不被撕开 */
+    section{break-before:page;page-break-before:always;padding:28px 0 12px}
+    .hero,#position{break-before:auto;page-break-before:auto}
+    .hero{padding:0 0 28px}
+    .card,.partner,.gov-card,.pc-item,.acc,.tl-item,.stat,.fin-kpi,.bar-row,
+    .fd-print-item,.north{break-inside:avoid;page-break-inside:avoid}
+    h1,h2,h3{break-after:avoid;page-break-after:avoid}
+    .floor-detail{min-height:0}
+    /* 楼层：屏幕上一次只看一层，打印时四层全部展开 */
+    .building-wrap{display:block}
+    .building{margin-bottom:24px}
+    #floorDetail{display:none}
+    #floorPrint{display:block !important}
+    .fd-print-item{margin-bottom:22px;padding:30px;border-radius:26px;
+      background:rgba(22,32,58,.92);border:1px solid rgba(255,255,255,.13)}
+    a{text-decoration:none;color:inherit}
+  }
+  #floorPrint{display:none}
+
   @media (prefers-reduced-motion:reduce){
     *,*::before,*::after{animation-duration:.01s !important;animation-iteration-count:1 !important;transition-duration:.15s !important}
   }
@@ -564,6 +604,7 @@
       </svg>
     </div>
     <div class="floor-detail g sweep" id="floorDetail"></div>
+    <div id="floorPrint"></div>
   </div>
 </section>
 
@@ -908,19 +949,23 @@ const FLOORS = {
     rev:"收入逻辑：<b>高单价空间费 + 大额算力订阅长约</b>。本层是全楼客单价最高的楼层，合规专区是核心竞争壁垒。"}
 };
 const fd = document.getElementById("floorDetail");
-function showFloor(n){
-  const f = FLOORS[n];
-  document.querySelectorAll(".floor").forEach(el=>el.classList.toggle("on",el.dataset.floor==n));
-  fd.innerHTML = `
+const floorHTML = f => `
     <span class="fd-tag" style="color:${f.color};background:${f.color}1f">${f.tag}</span>
     <h3>${f.name}</h3>
     <div class="fd-area">${f.area}</div>
     <p>${f.desc}</p>
     <ul class="fd-list">${f.items.map(i=>`<li>${i}</li>`).join("")}</ul>
     <div class="fd-rev">${f.rev}</div>`;
+function showFloor(n){
+  const f = FLOORS[n];
+  document.querySelectorAll(".floor").forEach(el=>el.classList.toggle("on",el.dataset.floor==n));
+  fd.innerHTML = floorHTML(f);
 }
 document.querySelectorAll(".floor").forEach(el=>el.addEventListener("click",()=>showFloor(el.dataset.floor)));
 showFloor(1);
+// 打印版把四层全部铺开（屏幕上 #floorPrint 恒为 display:none）
+document.getElementById("floorPrint").innerHTML =
+  [1,2,3,4].map(n=>`<div class="fd-print-item">${floorHTML(FLOORS[n])}</div>`).join("");
 
 /* ---------- finance ---------- */
 const $=id=>document.getElementById(id);

@@ -1,4 +1,4 @@
-# 京门大厦方案页 —— 一键发布到 GitHub Pages
+﻿# 京门大厦方案页 —— 一键发布到 GitHub Pages
 # 用法：在本目录打开 PowerShell，执行  .\publish.ps1
 
 $ErrorActionPreference = "Stop"
